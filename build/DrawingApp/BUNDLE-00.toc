@@ -1,0 +1,3 @@
+([('DrawingApp',
+   '/Users/nevinmadathilate/GulfGatePool/DrawingProgram/dist/DrawingApp',
+   'EXECUTABLE')],)
