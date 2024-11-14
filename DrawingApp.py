@@ -228,10 +228,12 @@ class MainWindow(QMainWindow):
         self.drawing_area.deleting = False
         self.drawing_area.editing = False
         self.drawing_area.selecting = False
+        self.drawing_area.adding_text = False
     def enable_delete_mode(self):
         self.clear_properties_table()
         self.drawing_area.deleting = True
         self.drawing_area.editing = False
+        self.drawing_area.adding_text = False
 
     def enable_edit_mode(self):
         self.clear_properties_table()
@@ -239,6 +241,7 @@ class MainWindow(QMainWindow):
         self.drawing_area.deleting = False
         self.drawing_area.drawing = False
         self.drawing_area.selecting = False
+        self.drawing_area.adding_text = False
 
     def enable_select_mode(self):
         self.clear_properties_table()
@@ -246,6 +249,7 @@ class MainWindow(QMainWindow):
         self.drawing_area.drawing = False
         self.drawing_area.deleting = False
         self.drawing_area.selecting = True
+        self.drawing_area.adding_text = False
     
     def enable_text_mode(self):
         self.drawing_area.adding_text = True
