@@ -327,11 +327,15 @@ class MainWindow(QMainWindow):
             return 
         last_action, bar_data = self.history.pop()
         if last_action == 'add':
-            self.drawing_area.scene.removeItem(bar_data['line'])
-            self.drawing_area.scene.removeItem(bar_data['text'])
-            self.project.bars.remove(bar_data['bar'])
-            self.drawing_area.drawn_bars.remove(bar_data)
-
+            if bar_data['line'] in self.drawing_area.scene.items():
+                self.drawing_area.scene.removeItem(bar_data['line'])
+            if bar_data['text'] in self.drawing_area.scene.items():
+                self.drawing_area.scene.removeItem(bar_data['text'])
+            if bar_data['bar'] in self.project.bars:
+                self.project.bars.remove(bar_data['bar'])
+            if bar_data in self.drawing_area.drawn_bars:
+                self.drawing_area.drawn_bars.remove(bar_data)
+            #updates bar inventory and cost 
             bar_type_name = bar_data['bar'].bar_type.name
             if bar_type_name in self.bar_counts:
                 self.bar_counts[bar_type_name] -= 1
@@ -340,10 +344,14 @@ class MainWindow(QMainWindow):
             self.update_inventory_table()
             self.update_total_cost()
         elif last_action == 'delete':
-            self.drawing_area.scene.addItem(bar_data['line'])
-            self.drawing_area.scene.addItem(bar_data['text'])
-            self.project.bars.append(bar_data['bar'])
-            self.drawing_area.drawn_bars.append(bar_data)
+            if bar_data['line'] not in self.drawing_area.scene.items():
+                self.drawing_area.scene.addItem(bar_data['line'])
+            if bar_data['text'] not in self.drawing_area.scene.items():
+                self.drawing_area.scene.addItem(bar_data['text'])
+            if bar_data['bar'] not in self.project.bars:
+                self.project.bars.append(bar_data['bar'])
+            if bar_data not in self.drawing_area.drawn_bars:
+                self.drawing_area.drawn_bars.append(bar_data)
 
             bar_type_name = bar_data['bar'].bar_type.name
             if bar_type_name in self.bar_counts:
