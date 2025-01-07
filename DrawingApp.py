@@ -229,6 +229,7 @@ class MainWindow(QMainWindow):
         self.drawing_area.editing = False
         self.drawing_area.selecting = False
         self.drawing_area.adding_text = False
+
     def enable_delete_mode(self):
         self.clear_properties_table()
         self.drawing_area.deleting = True
@@ -276,7 +277,7 @@ class MainWindow(QMainWindow):
         self.properties_table.itemChanged.connect(lambda item: self.update_bar_properties(item, bar_data))
 
         layout = self.drawing_tab.layout()
-        layout.addWidget(self.properties_table) #adds property table to right side of drawing area
+        layout.addWidget(self.properties_table) #adds property table to bottom side of drawing area
 
     def update_bar_properties(self, item, bar_data):
         if item.row() == 1:
@@ -298,7 +299,7 @@ class MainWindow(QMainWindow):
             bar_data['text'].setPos((start_point.x() + new_end_point.x()) / 2, (start_point.y() + new_end_point.y()) / 2)
 
             #updates cost for new length 
-            self.properties_table.item(3,1).setText(str(bar_data['bar'].cost()))
+            self.properties_table.item(2,1).setText(str(bar_data['bar'].cost()))
         elif item.row() == 0:
             new_bar_type_name = item.text()
             for bar_type in BAR_TYPES:

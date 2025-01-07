@@ -31,7 +31,7 @@ class PoolProject:
 BAR_TYPES = [
     BarType(name = 'Select Bar Type', cost_per_unit= 0, thickness = 2),
     BarType(name = '1X2 Open Back', cost_per_unit= .912, thickness = 2),
-    BarType(name = '2X2 Post', cost_per_unit= 35.76, thickness = 2),
+    BarType(name = '2X2 Post', cost_per_unit= 1.79, thickness = 2),
     BarType(name = '2X4', cost_per_unit= 1.58, thickness = 2),
     BarType(name = '2X5', cost_per_unit= 1.98, thickness = 2),
     BarType(name = '2X6', cost_per_unit= 2.25, thickness = 2),
