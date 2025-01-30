@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blueprint Drawing</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Drawing Application</h1>
+    <button onclick="addTestBar()">Add Bar</button>
+    <button onclick="clearBars()">Clear Bars</button>
+    <canvas id="drawingCanvas" width="800" height="400"></canvas>
+
+    <script>
+        async function fetchBars() {
+            const response = await fetch('/get_bars');
+            const bars = await response.json();
+            drawBars(bars);
+        }
+
+        function drawBars(bars) {
+            const canvas = document.getElementById('drawingCanvas');
+            const ctx = canvas.getContext('2d');
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);  // Clear canvas
+
+            bars.forEach(bar => {
+                const [x, y] = bar.position.split(',').map(Number);
+                const length = bar.length * 10; // Scale length for visibility
+
+                ctx.strokeStyle = "black";
+                ctx.lineWidth = 5;
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + length, y);
+                ctx.stroke();
+
+                // Label the bar
+                ctx.fillStyle = "black";
+                ctx.fillText(bar.type, x + length / 2, y - 5);
+            });
+        }
+
+        async function addTestBar() {
+            const response = await fetch('/add_bar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: "2X4",
+                    length: 10,
+                    position: "100,200"
+                })
+            });
+
+            const result = await response.json();
+            console.log(result);
+            fetchBars();  // Refresh drawing
+        }
+
+        async function clearBars() {
+            await fetch('/clear_bars', { method: 'POST' });
+            fetchBars();
+        }
+
+        // Load bars when page opens
+        fetchBars();
+    </script>
+
+</body>
+</html>

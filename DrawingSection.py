@@ -1,9 +1,29 @@
 import sys
+import requests
 from PyQt6.QtWidgets import QGraphicsView, QGraphicsScene, QInputDialog, QGraphicsLineItem, QGraphicsTextItem, QGraphicsEllipseItem, QGraphicsRectItem
 from PyQt6.QtCore import Qt, QPointF
 from PyQt6.QtGui import QPainter, QPen, QAction, QKeySequence
 from math import sqrt, atan2, pi, cos, sin
 from Bar import PoolProject, BarType, Bar, BAR_TYPES
+SERVER_URL = "http://127.0.0.1:5000"
+
+def send_bar_to_server(bar_data):
+    """ Sends bar data to the Flask server """
+    try:
+        data = {
+            "bar_type": bar_data['bar'].bar_type.name,
+            "length": bar_data['bar'].length,
+            "start_x": bar_data['start_point'].x(),
+            "start_y": bar_data['start_point'].y(),
+            "end_x": bar_data['end_point'].x(),
+            "end_y": bar_data['end_point'].y(),
+        }
+        response = requests.post(f"{SERVER_URL}/add_bar", json=data)
+        response.raise_for_status()  # Raises an error for bad responses (4xx, 5xx)
+        print(f"✅ Sent bar data to server: {response.json()}")
+    except requests.RequestException as e:
+        print(f"Error sending bar data to server: {e}")
+
 class DrawingArea(QGraphicsView):
     def __init__(self, main_window):
         super().__init__()
@@ -24,6 +44,7 @@ class DrawingArea(QGraphicsView):
         self.selected_bar = None
         self.offset = QPointF()
         self.current_color = Qt.GlobalColor.white
+    
        
     def drawBackground(self, painter, rect):
         if self.grid_enabled:
@@ -114,6 +135,9 @@ class DrawingArea(QGraphicsView):
             if bar_data:
                 self.drawn_bars.append(bar_data)
                 self.main_window.history.append(('add', bar_data))
+                send_bar_to_server(bar_data)
+
+                
 
                 #prompts the user to select length when drawing bar 
                 new_length, ok = QInputDialog.getDouble(self,'Bar Length', 'Enter Bar Length', min = 0)
@@ -134,7 +158,7 @@ class DrawingArea(QGraphicsView):
                     bar_data['line'].setLine(start_point.x(), start_point.y(), new_end_point.x(), new_end_point.y())
                     bar_data['text'].setPlainText(f"{bar_data['bar'].bar_type.name} ({new_length:.2f} ft)")
                     bar_data['text'].setPos((start_point.x() + new_end_point.x()) / 2, (start_point.y() + new_end_point.y()) / 2)
-
+                send_bar_to_server(bar_data)
             self.current_line = None
             self.scene.update()
 
@@ -191,3 +215,4 @@ class DrawingArea(QGraphicsView):
             start_point.y() + sin(angle) * distance
         )
         return snapped_end_point
+    

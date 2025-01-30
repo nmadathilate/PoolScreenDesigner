@@ -1,4 +1,7 @@
 import sys
+import requests
+import threading 
+import subprocess
 from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QToolBar, QInputDialog, QGraphicsTextItem, QComboBox, QTabWidget, QTableWidget, QTableWidgetItem, QColorDialog, QFileDialog
 from PyQt6.QtCore import Qt, QPointF, QRectF
 from PyQt6.QtGui import QPainter, QPen, QAction, QKeySequence, QIcon, QColor
@@ -6,7 +9,7 @@ from PyQt6.QtPrintSupport import QPrinter
 from math import sqrt
 from Bar import PoolProject, BarType, Bar, BAR_TYPES
 from DrawingSection import DrawingArea
-
+SERVER_URL = "http://127.0.0.1:5000"
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -38,6 +41,7 @@ class MainWindow(QMainWindow):
         self.create_toolbar()
         self.Ctrl_Z_shortcut() #allows for Ctrl + Z, Ctrl + P, and Ctrl + V
         self.statusBar().showMessage("Total cost: $0.00")
+        self.load_bars_from_server()
     
     
     def create_drawing_tab(self):
@@ -185,6 +189,12 @@ class MainWindow(QMainWindow):
                 print(f"Deleting bar: {bar_data} ")
                 self.drawing_area.scene.removeItem(bar_data['line'])
                 self.drawing_area.scene.removeItem(bar_data['text'])
+                #remove from flask
+                try:
+                    requests.post(f"{SERVER_URL}/clear", json={"bar_id": id(bar_data['bar'])}) 
+                except requests.exceptions.RequestException as e:
+                    print("Error deleting bar:", e)
+
                 self.project.bars.remove(bar_data['bar'])
                 self.update_total_cost()
 
@@ -336,6 +346,11 @@ class MainWindow(QMainWindow):
                 self.project.bars.remove(bar_data['bar'])
             if bar_data in self.drawing_area.drawn_bars:
                 self.drawing_area.drawn_bars.remove(bar_data)
+            #remove from flask server 
+            try:
+                requests.post(f"{SERVER_URL}/clear", json={"bar_id": id(bar_data['bar'])})
+            except requests.exceptions.RequestException as e:
+                print("Error syncing undo", e)
             #updates bar inventory and cost 
             bar_type_name = bar_data['bar'].bar_type.name
             if bar_type_name in self.bar_counts:
@@ -367,6 +382,22 @@ class MainWindow(QMainWindow):
     def update_total_cost(self):
         total_cost = self.project.calculate_total_cost()
         self.statusBar().showMessage(f"Total cost: ${total_cost:.2f}")
+    
+    def load_bars_from_server(self):
+        try:
+            response = requests.get(f"{SERVER_URL}/get_bars")
+            if response.status_code == 200:
+                bars = response.json()
+                for bar_data in bars:
+                # Recreate bars visually
+                    new_bar = self.add_drawn_bar(bar_data['bar']['length'] * 10,  # Convert to pixels
+                                             QPointF(bar_data['start_point']['x'], bar_data['start_point']['y']),
+                                             QPointF(bar_data['end_point']['x'], bar_data['end_point']['y']))
+                    if new_bar:
+                        self.drawing_area.drawn_bars.append(new_bar)
+        except requests.exceptions.RequestException as e:
+            print("Error fetching bars:", e)
+
     
 
 if __name__ == "__main__":
